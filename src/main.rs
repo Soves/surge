@@ -2,12 +2,13 @@
 extern crate glium;
 
 pub mod geometry;
+pub mod sprite;
 
 fn main() 
 {
     use glium::{glutin, Surface};
-    use geometry::{Vertex};
-
+    use geometry::{Vertex, Triangle, Rectangle};
+    use sprite::Sprite;
     //define neccessary variables for rendering
     //glutins event loop so we can hanle window events and render things
     let mut event_loop = glutin::event_loop::EventLoop::new();
@@ -21,40 +22,19 @@ fn main()
     //TEMP RENDERING STUFF
 
     //define triangle
-    let vertex1 = Vertex { position: [-0.5, -0.5] };
-    let vertex2 = Vertex { position: [ 0.0,  0.5] };
-    let vertex3 = Vertex { position: [ 0.5, -0.25] };
-    let shape = vec![vertex1, vertex2, vertex3];
+    let shape = Rectangle::from([-0.5, -0.5,  0.5, 0.5]);
 
     //create vertex buffer from trianle
-    let vertex_buffer = glium::VertexBuffer::new(&display, &shape).unwrap();
+    let vertex_buffer = glium::VertexBuffer::new(&display, &shape.to_trianglelist()).unwrap();
     let indices = glium::index::NoIndices(glium::index::PrimitiveType::TrianglesList);
 
-    //shaders
-    let vertex_shader_src = r#"
-
-        #version 140
-
-        in vec2 position;
-
-        void main() {
-            gl_Position = vec4(position, 0.0, 1.0);
-        }
-    "#;
     
-    let fragment_shader_src = r#"
 
-        #version 140
+    let sprite = Sprite::new(&display, "C:/Users/soVes/Downloads/EPIGaDv - Imgur.png");
 
-        out vec4 color;
-
-        void main() {
-            color = vec4(1.0, 0.0, 0.0, 1.0);
-        }
-    "#;
 
     //combine shaders into a program
-    let program = glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
+    //let program = glium::Program::from_source(&display, vertex_shader_src, fragment_shader_src, None).unwrap();
 
     //pass anonymous function/closure as a callback to glutins event loop
     event_loop.run(move |ev, _, control_flow| {
@@ -66,8 +46,7 @@ fn main()
         target.clear_color(0.0,0.0,1.0,1.0);
 
         //draw stuff
-        target.draw(&vertex_buffer, &indices, &program, &glium::uniforms::EmptyUniforms,
-            &Default::default()).unwrap();
+        sprite.draw(&mut target);
 
         //swap our double buffered surface to the display so it will be visible on the window
         //after we can no longer draw onto it
