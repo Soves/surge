@@ -1,7 +1,7 @@
 use surge;
 fn main() {
     
-    let game_instance = surge::GameInstance::new();
+    let window = surge::Window::new();
 
-    pollster::block_on(game_instance.run());
+    pollster::block_on(surge::Window::run());
 }

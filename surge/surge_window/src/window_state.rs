@@ -4,16 +4,17 @@ use winit::{
 
 use winit::window::Window;
 
-pub struct State
+pub struct WindowState
 {
     surface: wgpu::Surface,
     device: wgpu::Device,
     queue: wgpu::Queue,
     config: wgpu::SurfaceConfiguration,
-    pub size: winit::dpi::PhysicalSize<u32>
+    pub size: winit::dpi::PhysicalSize<u32>,
+    clear_color: wgpu::Color
 }
 
-impl State
+impl WindowState
 {
     // Creating some of the wgpu types requires async code
     pub async fn new(window: &Window) -> Self{
@@ -66,6 +67,7 @@ impl State
         };
         surface.configure(&device, &config);
 
+        let clear_color = wgpu::Color::BLACK;
 
         Self { //finally create the struct
             surface,
@@ -73,6 +75,7 @@ impl State
             queue,
             config,
             size,
+            clear_color
         }
     }
 
@@ -90,7 +93,18 @@ impl State
     }
 
     pub fn input(&mut self, event: &WindowEvent) -> bool {
-        false
+        match event {
+            WindowEvent::CursorMoved { position, .. } => {
+                self.clear_color = wgpu::Color {
+                    r: position.x as f64 / self.size.width as f64,
+                    g: position.y as f64 / self.size.height as f64,
+                    b: 1.0,
+                    a: 1.0,
+                };
+                true
+            }
+            _ => false,
+        }
     }
 
     pub fn update(&mut self) {
@@ -114,12 +128,7 @@ impl State
                     view: &view,
                     resolve_target: None,
                     ops: wgpu::Operations {
-                        load: wgpu::LoadOp::Clear(wgpu::Color {
-                            r: 0.1,
-                            g: 0.2,
-                            b: 0.3,
-                            a: 1.0,
-                        }),
+                        load: wgpu::LoadOp::Clear(self.clear_color),
                         store: true,
                     },
                 }],
